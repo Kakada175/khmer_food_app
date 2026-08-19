@@ -1,10 +1,10 @@
+import 'package:get/get.dart';
 import '../models/food_model.dart';
 import 'food_repository.dart';
-import '../services/openai_chat_service.dart';
+import '../services/laravel_api_service.dart';
 
 class AIRepository {
   final FoodRepository _foodRepository;
-  final OpenAIChatService _chatService = OpenAIChatService();
 
   AIRepository(this._foodRepository);
 
@@ -29,6 +29,6 @@ class AIRepository {
   }
 
   Future<String> askAIChef(String query, List<Map<String, String>> history) async {
-    return await _chatService.askChef(query, history);
+    return await Get.find<LaravelApiService>().askAIChef(query, history);
   }
 }

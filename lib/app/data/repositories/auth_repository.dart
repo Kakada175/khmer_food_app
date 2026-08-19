@@ -1,86 +1,53 @@
+import 'package:get/get.dart';
 import '../models/user_model.dart';
+import '../services/laravel_api_service.dart';
 
 class AuthRepository {
-  UserModel _currentUser = UserModel(
-    id: 'usr_001',
-    name: 'Sokha Rith',
-    email: 'sokha@khmerfood.app',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-    role: UserRole.registered,
-    favoriteFoodIds: ['food_fish_amok', 'food_pepper_crab'],
-    favoriteVideoIds: [],
-    downloadedFoodIds: ['food_fish_amok'],
-  );
+  final LaravelApiService _api = Get.find<LaravelApiService>();
+
+  UserModel _currentUser = UserModel.guest();
 
   UserModel get currentUser => _currentUser;
+
+  void setCurrentUser(UserModel user) {
+    _currentUser = user;
+  }
 
   UserModel loginAsGuest() {
     _currentUser = UserModel.guest();
     return _currentUser;
   }
 
-  UserModel login(String email, String password) {
-    if (email.contains('admin')) {
-      _currentUser = UserModel(
-        id: 'usr_admin',
-        name: 'Master Admin',
-        email: email,
-        avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80',
-        role: UserRole.admin,
-      );
-    } else {
-      _currentUser = UserModel(
-        id: 'usr_reg',
-        name: 'Cambodian Foodie',
-        email: email,
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-        role: UserRole.registered,
-        favoriteFoodIds: ['food_fish_amok'],
-      );
+  Future<UserModel?> login(String email, String password) async {
+    final user = await _api.login(email, password);
+    if (user != null) {
+      _currentUser = user;
     }
-    return _currentUser;
+    return user;
   }
 
-  UserModel register(String name, String email, String password) {
-    _currentUser = UserModel(
-      id: 'usr_${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      email: email,
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
-      role: UserRole.registered,
-    );
-    return _currentUser;
-  }
-
-  void switchRole(UserRole role) {
-    _currentUser = UserModel(
-      id: _currentUser.id,
-      name: _currentUser.name,
-      email: _currentUser.email,
-      avatarUrl: _currentUser.avatarUrl,
-      role: role,
-      favoriteFoodIds: _currentUser.favoriteFoodIds,
-      favoriteVideoIds: _currentUser.favoriteVideoIds,
-      downloadedFoodIds: _currentUser.downloadedFoodIds,
-    );
-  }
-
-  void toggleFavoriteFood(String foodId) {
-    final updatedList = List<String>.from(_currentUser.favoriteFoodIds);
-    if (updatedList.contains(foodId)) {
-      updatedList.remove(foodId);
-    } else {
-      updatedList.add(foodId);
+  Future<UserModel?> register(String name, String email, String password) async {
+    final user = await _api.register(name, email, password);
+    if (user != null) {
+      _currentUser = user;
     }
-    _currentUser = UserModel(
-      id: _currentUser.id,
-      name: _currentUser.name,
-      email: _currentUser.email,
-      avatarUrl: _currentUser.avatarUrl,
-      role: _currentUser.role,
-      favoriteFoodIds: updatedList,
-      favoriteVideoIds: _currentUser.favoriteVideoIds,
-      downloadedFoodIds: _currentUser.downloadedFoodIds,
-    );
+    return user;
+  }
+
+  Future<UserModel?> switchRole(String userId, UserRole role) async {
+    // role.toString() yields e.g. "UserRole.admin"
+    final user = await _api.switchRole(userId, role.toString());
+    if (user != null) {
+      _currentUser = user;
+    }
+    return user;
+  }
+
+  Future<UserModel?> toggleFavoriteFood(String userId, String foodId) async {
+    final user = await _api.toggleFavorite(userId, foodId);
+    if (user != null) {
+      _currentUser = user;
+    }
+    return user;
   }
 }

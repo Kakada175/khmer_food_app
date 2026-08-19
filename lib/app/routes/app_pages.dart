@@ -29,9 +29,12 @@ import 'app_routes.dart';
 
 import '../controllers/theme_controller.dart';
 
+import '../data/services/laravel_api_service.dart';
+
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
+    Get.put(LaravelApiService(), permanent: true);
     final foodRepo = Get.put(FoodRepository(), permanent: true);
     Get.put(ThemeController(), permanent: true);
     Get.put(AuthController(), permanent: true);

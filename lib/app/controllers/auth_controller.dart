@@ -24,37 +24,55 @@ class AuthController extends GetxController {
     }
   }
 
-  void login(String email, String password) {
-    currentUser.value = _authRepository.login(email, password);
-    if (Get.context != null) {
-      Get.snackbar('Welcome Back', 'Logged in as ${currentUser.value.name}');
+  void login(String email, String password) async {
+    final user = await _authRepository.login(email, password);
+    if (user != null) {
+      currentUser.value = user;
+      if (Get.context != null) {
+        Get.snackbar('Welcome Back', 'Logged in as ${currentUser.value.name}');
+      }
+    } else {
+      if (Get.context != null) {
+        Get.snackbar('Login Failed', 'Invalid credentials or database offline');
+      }
     }
   }
 
-  void register(String name, String email, String password) {
-    currentUser.value = _authRepository.register(name, email, password);
-    if (Get.context != null) {
-      Get.snackbar('Account Created', 'Welcome to Khmer Food Explorer!');
+  void register(String name, String email, String password) async {
+    final user = await _authRepository.register(name, email, password);
+    if (user != null) {
+      currentUser.value = user;
+      if (Get.context != null) {
+        Get.snackbar('Account Created', 'Welcome to Khmer Food Explorer!');
+      }
+    } else {
+      if (Get.context != null) {
+        Get.snackbar('Registration Failed', 'Database connection error');
+      }
     }
   }
 
-  void switchRole(UserRole role) {
-    _authRepository.switchRole(role);
-    currentUser.value = _authRepository.currentUser;
-    if (Get.context != null) {
-      Get.snackbar('Role Switched', 'Current role: ${role.toString().split('.').last.toUpperCase()}');
+  void switchRole(UserRole role) async {
+    final user = await _authRepository.switchRole(currentUser.value.id, role);
+    if (user != null) {
+      currentUser.value = user;
+      if (Get.context != null) {
+        Get.snackbar('Role Switched', 'Current role: ${role.toString().split('.').last.toUpperCase()}');
+      }
     }
   }
 
-  void toggleFavorite(String foodId) {
+  void toggleFavorite(String foodId) async {
     if (isGuest) {
       if (Get.context != null) {
         Get.snackbar('Sign In Required', 'Please log in to save favorites');
       }
       return;
     }
-    _authRepository.toggleFavoriteFood(foodId);
-    currentUser.value = _authRepository.currentUser;
+    final user = await _authRepository.toggleFavoriteFood(currentUser.value.id, foodId);
+    if (user != null) {
+      currentUser.value = user;
+    }
   }
 
   bool isFavorite(String foodId) {

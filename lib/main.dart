@@ -5,8 +5,22 @@ import 'app/translations/app_translations.dart';
 import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 
-void main() {
+import 'app/data/services/laravel_api_service.dart';
+import 'app/data/repositories/food_repository.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize services early to fetch data from the database
+  Get.put(LaravelApiService(), permanent: true);
+  final foodRepo = Get.put(FoodRepository(), permanent: true);
+  
+  try {
+    await foodRepo.initData();
+  } catch (e) {
+    debugPrint('Database initialization error: $e');
+  }
+  
   runApp(const KhmerFoodApp());
 }
 

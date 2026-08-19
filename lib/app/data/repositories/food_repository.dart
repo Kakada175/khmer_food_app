@@ -1,15 +1,52 @@
+import 'package:get/get.dart';
 import '../models/food_model.dart';
 import '../models/category_model.dart';
 import '../models/province_model.dart';
 import '../models/collection_model.dart';
 import '../models/review_model.dart';
-import '../providers/mock_data_provider.dart';
+import '../services/laravel_api_service.dart';
 
 class FoodRepository {
-  final List<FoodModel> _foods = List.from(MockDataProvider.foods);
-  final List<CategoryModel> _categories = List.from(MockDataProvider.categories);
-  final List<ProvinceModel> _provinces = List.from(MockDataProvider.provinces);
-  final List<CollectionModel> _collections = List.from(MockDataProvider.initialCollections);
+  final LaravelApiService _api = Get.find<LaravelApiService>();
+
+  final List<FoodModel> _foods = [];
+  final List<CategoryModel> _categories = [];
+  final List<ProvinceModel> _provinces = [];
+  final List<CollectionModel> _collections = [];
+
+  // Initialize cached data from Laravel DB
+  Future<void> initData() async {
+    await refreshAll();
+  }
+
+  Future<void> refreshAll() async {
+    final results = await Future.wait([
+      _api.getCategories(),
+      _api.getProvinces(),
+      _api.getFoods(),
+    ]);
+    
+    _categories.clear();
+    _categories.addAll(results[0] as List<CategoryModel>);
+
+    _provinces.clear();
+    _provinces.addAll(results[1] as List<ProvinceModel>);
+
+    _foods.clear();
+    _foods.addAll(results[2] as List<FoodModel>);
+  }
+
+  Future<void> refreshFoods() async {
+    final foods = await _api.getFoods();
+    _foods.clear();
+    _foods.addAll(foods);
+  }
+
+  Future<void> refreshCollections(String userId) async {
+    final cols = await _api.getCollections(userId);
+    _collections.clear();
+    _collections.addAll(cols);
+  }
 
   List<FoodModel> getAllFoods() => _foods;
   List<CategoryModel> getCategories() => _categories;
@@ -83,74 +120,47 @@ class FoodRepository {
     }).toList();
   }
 
-  void addFood(FoodModel food) {
-    _foods.insert(0, food);
+  Future<bool> addFood(FoodModel food) async {
+    final added = await _api.addFood(food);
+    if (added != null) {
+      await refreshFoods();
+      return true;
+    }
+    return false;
   }
 
   void updateFood(FoodModel food) {
+    // Local updates are handled on DB refresh, but to keep memory in sync immediately:
     final idx = _foods.indexWhere((f) => f.id == food.id);
     if (idx != -1) {
       _foods[idx] = food;
     }
   }
 
-  void deleteFood(String id) {
-    _foods.removeWhere((f) => f.id == id);
-  }
-
-  void addReview(String foodId, ReviewModel review) {
-    final food = getFoodById(foodId);
-    if (food != null) {
-      food.reviews.insert(0, review);
-      final newReviewCount = food.reviewCount + 1;
-      final newRating = ((food.rating * food.reviewCount) + review.rating) / newReviewCount;
-      final updated = FoodModel(
-        id: food.id,
-        nameKhmer: food.nameKhmer,
-        nameEnglish: food.nameEnglish,
-        localName: food.localName,
-        descriptionKhmer: food.descriptionKhmer,
-        descriptionEnglish: food.descriptionEnglish,
-        provinceId: food.provinceId,
-        provinceName: food.provinceName,
-        categoryId: food.categoryId,
-        categoryName: food.categoryName,
-        difficulty: food.difficulty,
-        prepTimeMinutes: food.prepTimeMinutes,
-        cookTimeMinutes: food.cookTimeMinutes,
-        servingSize: food.servingSize,
-        historyBackgroundKhmer: food.historyBackgroundKhmer,
-        historyBackgroundEnglish: food.historyBackgroundEnglish,
-        culturalSignificance: food.culturalSignificance,
-        traditionalEvents: food.traditionalEvents,
-        originStory: food.originStory,
-        ingredients: food.ingredients,
-        cookingSteps: food.cookingSteps,
-        nutrition: food.nutrition,
-        coverImageUrl: food.coverImageUrl,
-        galleryImages: food.galleryImages,
-        youtubeVideoUrl: food.youtubeVideoUrl,
-        videoThumbnailUrl: food.videoThumbnailUrl,
-        rating: double.parse(newRating.toStringAsFixed(1)),
-        reviewCount: newReviewCount,
-        viewCount: food.viewCount,
-        favoriteCount: food.favoriteCount,
-        isFeatured: food.isFeatured,
-        isPopular: food.isPopular,
-        isTraditional: food.isTraditional,
-        isFestival: food.isFestival,
-        festivalName: food.festivalName,
-        isVegetarian: food.isVegetarian,
-        isSpicy: food.isSpicy,
-        isHalalFriendly: food.isHalalFriendly,
-        isGlutenFree: food.isGlutenFree,
-        reviews: food.reviews,
-      );
-      updateFood(updated);
+  Future<bool> deleteFood(String id) async {
+    final deleted = await _api.deleteFood(id);
+    if (deleted) {
+      await refreshFoods();
+      return true;
     }
+    return false;
   }
 
-  void createCollection(CollectionModel collection) {
-    _collections.add(collection);
+  Future<bool> addReview(String foodId, ReviewModel review) async {
+    final added = await _api.addReview(foodId, review);
+    if (added != null) {
+      await refreshFoods();
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> createCollection(CollectionModel collection, String userId) async {
+    final added = await _api.createCollection(collection, userId);
+    if (added != null) {
+      await refreshCollections(userId);
+      return true;
+    }
+    return false;
   }
 }

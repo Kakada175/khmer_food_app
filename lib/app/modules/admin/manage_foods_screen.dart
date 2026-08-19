@@ -177,7 +177,7 @@ class ManageFoodsScreen extends StatelessWidget {
                 actions: [
                   TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (nameEngCtrl.text.isNotEmpty) {
                         final newFood = FoodModel(
                           id: 'food_${DateTime.now().millisecondsSinceEpoch}',
@@ -214,7 +214,7 @@ class ManageFoodsScreen extends StatelessWidget {
                           reviews: [],
                         );
 
-                        adminCtrl.foodRepository.addFood(newFood);
+                        await adminCtrl.foodRepository.addFood(newFood);
                         adminCtrl.loadAdminData();
                         Get.back();
                         Get.snackbar('Recipe Created', 'New recipe "${newFood.nameEnglish}" added to database.');

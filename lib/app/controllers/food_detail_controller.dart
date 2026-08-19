@@ -67,7 +67,7 @@ class FoodDetailController extends GetxController {
     activeTimerStepIndex.value = -1;
   }
 
-  void submitReview() {
+  void submitReview() async {
     final authCtrl = Get.find<AuthController>();
     if (authCtrl.isGuest) {
       Get.snackbar('Sign In Required', 'Please sign in to leave a review.');
@@ -89,10 +89,14 @@ class FoodDetailController extends GetxController {
         date: 'Just now',
       );
 
-      foodRepository.addReview(food.value!.id, review);
-      loadFood(food.value!.id);
-      userComment.value = '';
-      Get.snackbar('Thank You!', 'Your review has been submitted.');
+      final success = await foodRepository.addReview(food.value!.id, review);
+      if (success) {
+        loadFood(food.value!.id);
+        userComment.value = '';
+        Get.snackbar('Thank You!', 'Your review has been submitted.');
+      } else {
+        Get.snackbar('Error', 'Failed to submit review to database.');
+      }
     }
   }
 

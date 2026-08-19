@@ -70,9 +70,13 @@ class AdminController extends GetxController {
     }
   }
 
-  void deleteFood(String foodId) {
-    foodRepository.deleteFood(foodId);
-    loadAdminData();
-    Get.snackbar('Deleted', 'Food recipe deleted successfully');
+  void deleteFood(String foodId) async {
+    final success = await foodRepository.deleteFood(foodId);
+    if (success) {
+      loadAdminData();
+      Get.snackbar('Deleted', 'Food recipe deleted successfully');
+    } else {
+      Get.snackbar('Error', 'Failed to delete food recipe');
+    }
   }
 }

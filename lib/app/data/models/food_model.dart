@@ -152,7 +152,7 @@ class FoodModel {
       ingredients: (json['ingredients'] as List? ?? [])
           .map((e) => IngredientModel.fromJson(e))
           .toList(),
-      cookingSteps: (json['cookingSteps'] as List? ?? [])
+      cookingSteps: ((json['cookingSteps'] ?? json['cooking_steps']) as List? ?? [])
           .map((e) => CookingStepModel.fromJson(e))
           .toList(),
       nutrition: NutritionModel.fromJson(json['nutrition'] ?? {}),
@@ -164,15 +164,15 @@ class FoodModel {
       reviewCount: json['reviewCount'] ?? 0,
       viewCount: json['viewCount'] ?? 0,
       favoriteCount: json['favoriteCount'] ?? 0,
-      isFeatured: json['isFeatured'] ?? false,
-      isPopular: json['isPopular'] ?? false,
-      isTraditional: json['isTraditional'] ?? true,
-      isFestival: json['isFestival'] ?? false,
+      isFeatured: json['isFeatured'] == true || json['isFeatured'] == 1 || json['isFeatured'] == 'true',
+      isPopular: json['isPopular'] == true || json['isPopular'] == 1 || json['isPopular'] == 'true',
+      isTraditional: json['isTraditional'] == true || json['isTraditional'] == 1 || json['isTraditional'] == 'true' || json['isTraditional'] == null,
+      isFestival: json['isFestival'] == true || json['isFestival'] == 1 || json['isFestival'] == 'true',
       festivalName: json['festivalName'],
-      isVegetarian: json['isVegetarian'] ?? false,
-      isSpicy: json['isSpicy'] ?? false,
-      isHalalFriendly: json['isHalalFriendly'] ?? false,
-      isGlutenFree: json['isGlutenFree'] ?? false,
+      isVegetarian: json['isVegetarian'] == true || json['isVegetarian'] == 1 || json['isVegetarian'] == 'true',
+      isSpicy: json['isSpicy'] == true || json['isSpicy'] == 1 || json['isSpicy'] == 'true',
+      isHalalFriendly: json['isHalalFriendly'] == true || json['isHalalFriendly'] == 1 || json['isHalalFriendly'] == 'true',
+      isGlutenFree: json['isGlutenFree'] == true || json['isGlutenFree'] == 1 || json['isGlutenFree'] == 'true',
       reviews: (json['reviews'] as List? ?? [])
           .map((e) => ReviewModel.fromJson(e))
           .toList(),

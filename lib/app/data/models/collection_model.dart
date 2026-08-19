@@ -22,7 +22,7 @@ class CollectionModel {
       description: json['description'] ?? '',
       coverImageUrl: json['coverImageUrl'] ?? '',
       foodIds: List<String>.from(json['foodIds'] ?? []),
-      isDefault: json['isDefault'] ?? false,
+      isDefault: json['isDefault'] == true || json['isDefault'] == 1 || json['isDefault'] == 'true',
     );
   }
 
